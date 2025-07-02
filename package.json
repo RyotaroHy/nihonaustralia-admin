@@ -15,7 +15,14 @@
     "test:coverage": "jest --coverage",
     "seed": "tsx scripts/seed.ts",
     "seed:admin": "tsx scripts/seeds/seedAdminUsers.ts",
-    "migrate:admin": "tsx scripts/add-admin-columns.ts"
+    "migrate:admin": "tsx scripts/add-admin-columns.ts",
+    "setup:admin": "tsx scripts/setup-admin-db.ts",
+    "setup:admin:local": "tsx scripts/setup-admin-db.ts --local",
+    "deploy:admin": "tsx scripts/deploy-admin.ts",
+    "db:link": "npx supabase link",
+    "db:push": "npx supabase db push --linked",
+    "db:pull": "npx supabase db pull --linked",
+    "db:diff": "npx supabase db diff --linked"
   },
   "lint-staged": {
     "**/*.{js,ts,jsx,tsx}": [
