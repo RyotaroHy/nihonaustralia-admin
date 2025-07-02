@@ -3,6 +3,8 @@
 import { useState, Suspense } from 'react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { isAdminUser } from '@/lib/admin-auth';
+import { Database } from '@/types/supabase';
 
 function SignInForm() {
   const [email, setEmail] = useState('');
@@ -21,18 +23,45 @@ function SignInForm() {
     setError('');
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // Attempt to sign in
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        setError(error.message);
-      } else {
-        router.push(redirectTo);
+        // Handle specific error cases
+        if (error.message.includes('Invalid login credentials')) {
+          setError('メールアドレスまたはパスワードが正しくありません');
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('メールアドレスが確認されていません');
+        } else {
+          setError(error.message);
+        }
+        return;
       }
+
+      if (!data.user) {
+        setError('ログインに失敗しました');
+        return;
+      }
+
+      // Check if user has admin privileges
+      const hasAdminAccess = await isAdminUser(supabase as any, data.user.id);
+
+      if (!hasAdminAccess) {
+        // Sign out the user since they don't have admin access
+        await supabase.auth.signOut();
+        setError('管理者権限がありません。このアカウントではアクセスできません。');
+        return;
+      }
+
+      // Success - redirect to admin panel
+      router.push(redirectTo);
+      
     } catch (err) {
-      setError('An unexpected error occurred');
+      console.error('Sign in error:', err);
+      setError('予期しないエラーが発生しました');
     } finally {
       setLoading(false);
     }
@@ -43,11 +72,16 @@ function SignInForm() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Admin Sign In
+            管理者ログイン
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Access the admin panel
+            NihonAustralia管理パネルにアクセス
           </p>
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              管理者権限が必要です
+            </p>
+          </div>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSignIn} suppressHydrationWarning>
           <div className="rounded-md shadow-sm -space-y-px" suppressHydrationWarning>
@@ -58,7 +92,7 @@ function SignInForm() {
                 type="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                placeholder="メールアドレス"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 suppressHydrationWarning
@@ -71,7 +105,7 @@ function SignInForm() {
                 type="password"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
+                placeholder="パスワード"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 suppressHydrationWarning
@@ -91,7 +125,7 @@ function SignInForm() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'ログイン中...' : 'ログイン'}
             </button>
           </div>
         </form>
