@@ -50,7 +50,7 @@ function SignInForm() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="rounded-md shadow-sm -space-y-px" suppressHydrationWarning>
             <div>
               <input
                 id="email"
@@ -61,6 +61,7 @@ function SignInForm() {
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                suppressHydrationWarning
               />
             </div>
             <div>
@@ -73,6 +74,7 @@ function SignInForm() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                suppressHydrationWarning
               />
             </div>
           </div>
