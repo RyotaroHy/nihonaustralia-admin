@@ -49,9 +49,9 @@ function SignInForm() {
             Access the admin panel
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
+        <form className="mt-8 space-y-6" onSubmit={handleSignIn} suppressHydrationWarning>
           <div className="rounded-md shadow-sm -space-y-px" suppressHydrationWarning>
-            <div>
+            <div suppressHydrationWarning>
               <input
                 id="email"
                 name="email"
@@ -64,7 +64,7 @@ function SignInForm() {
                 suppressHydrationWarning
               />
             </div>
-            <div>
+            <div suppressHydrationWarning>
               <input
                 id="password"
                 name="password"
