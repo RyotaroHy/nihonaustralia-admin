@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
+import { useUser } from '@supabase/auth-helpers-react';
 import { 
   getNotices, 
   createNotice, 
@@ -11,9 +11,9 @@ import {
 } from './_api/get-notices';
 import { NoticesPresenter } from './NoticesPresenter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createSupabaseAdminClient } from '@/lib/supabase-browser';
 
 export function NoticesContainer() {
-  const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const user = useUser();
   
@@ -31,20 +31,25 @@ export function NoticesContainer() {
       sortBy,
       sortOrder 
     }],
-    queryFn: () => getNotices(supabase, {
-      page: currentPage,
-      search: searchTerm,
-      sortBy,
-      sortOrder,
-    }),
+    queryFn: () => {
+      const adminClient = createSupabaseAdminClient();
+      return getNotices(adminClient, {
+        page: currentPage,
+        search: searchTerm,
+        sortBy,
+        sortOrder,
+      });
+    },
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: { message_ja: string; message_en?: string }) => 
-      createNotice(supabase, {
+    mutationFn: (data: { message_ja: string; message_en?: string }) => {
+      const adminClient = createSupabaseAdminClient();
+      return createNotice(adminClient, {
         ...data,
         created_by: user?.id || '',
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notices'] });
       setShowCreateModal(false);
@@ -55,7 +60,10 @@ export function NoticesContainer() {
     mutationFn: ({ noticeId, data }: { 
       noticeId: string; 
       data: { message_ja?: string; message_en?: string } 
-    }) => updateNotice(supabase, noticeId, data),
+    }) => {
+      const adminClient = createSupabaseAdminClient();
+      return updateNotice(adminClient, noticeId, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notices'] });
       setEditingNotice(null);
@@ -63,7 +71,10 @@ export function NoticesContainer() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (noticeId: string) => deleteNotice(supabase, noticeId),
+    mutationFn: (noticeId: string) => {
+      const adminClient = createSupabaseAdminClient();
+      return deleteNotice(adminClient, noticeId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notices'] });
     },

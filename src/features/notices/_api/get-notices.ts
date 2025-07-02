@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createSupabaseAdminClient } from '@/lib/supabase-browser';
 
 export type AdminNotice = {
   id: string;
@@ -8,8 +9,8 @@ export type AdminNotice = {
   message_en: string | null;
   created_by: string;
   created_by_name: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 };
 
 type GetNoticesParams = {
@@ -88,9 +89,9 @@ export const getNotices = async (
   // Transform data
   const notices: AdminNotice[] = (noticesData || []).map(notice => ({
     id: notice.id,
-    message_ja: notice.message_ja,
+    message_ja: notice.message_ja || '',
     message_en: notice.message_en,
-    created_by: notice.created_by,
+    created_by: notice.created_by || '',
     created_by_name: creatorNames[notice.created_by] || 'Unknown',
     created_at: notice.created_at,
     updated_at: notice.updated_at,
@@ -143,9 +144,9 @@ export const createNotice = async (
 
   return {
     id: notice.id,
-    message_ja: notice.message_ja,
+    message_ja: notice.message_ja || '',
     message_en: notice.message_en,
-    created_by: notice.created_by,
+    created_by: notice.created_by || '',
     created_by_name: 'You',
     created_at: notice.created_at,
     updated_at: notice.updated_at,

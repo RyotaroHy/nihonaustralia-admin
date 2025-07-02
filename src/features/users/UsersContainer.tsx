@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { getUsers, updateUserVerification, AdminUser } from './_api/get-users';
 import { UsersPresenter } from './UsersPresenter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createSupabaseAdminClient } from '@/lib/supabase-browser';
 
 export function UsersContainer() {
-  const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,13 +23,16 @@ export function UsersContainer() {
       sortBy,
       sortOrder 
     }],
-    queryFn: () => getUsers(supabase, {
-      page: currentPage,
-      search: searchTerm,
-      verificationStatus: verificationFilter,
-      sortBy,
-      sortOrder,
-    }),
+    queryFn: () => {
+      const adminClient = createSupabaseAdminClient();
+      return getUsers(adminClient, {
+        page: currentPage,
+        search: searchTerm,
+        verificationStatus: verificationFilter,
+        sortBy,
+        sortOrder,
+      });
+    },
   });
 
   const verificationMutation = useMutation({
@@ -38,7 +40,10 @@ export function UsersContainer() {
       userId: string; 
       verified: boolean; 
       notes?: string 
-    }) => updateUserVerification(supabase, userId, verified, notes),
+    }) => {
+      const adminClient = createSupabaseAdminClient();
+      return updateUserVerification(adminClient, userId, verified, notes);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
     },

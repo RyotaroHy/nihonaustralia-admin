@@ -15,7 +15,7 @@ type PostsPresenterProps = {
   onSearch: (search: string) => void;
   onStatusFilterChange: (filter: 'all' | 'draft' | 'public' | 'closed') => void;
   onTypeFilterChange: (filter: 'all' | 'job' | 'house' | 'qa' | 'service') => void;
-  onSortChange: (sortBy: typeof sortBy, sortOrder: 'asc' | 'desc') => void;
+  onSortChange: (sortBy: 'created_at' | 'updated_at' | 'view_count' | 'trust_score', sortOrder: 'asc' | 'desc') => void;
   onPageChange: (page: number) => void;
   onStatusUpdate: (postId: string, status: string) => void;
   onDelete: (postId: string) => void;
@@ -50,7 +50,8 @@ export function PostsPresenter({
     return sortOrder === 'desc' ? <HiSortDescending className="h-4 w-4" /> : <HiSortAscending className="h-4 w-4" />;
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
 

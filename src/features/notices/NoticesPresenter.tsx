@@ -22,7 +22,7 @@ type NoticesPresenterProps = {
   showCreateModal: boolean;
   editingNotice: AdminNotice | null;
   onSearch: (search: string) => void;
-  onSortChange: (sortBy: typeof sortBy, sortOrder: 'asc' | 'desc') => void;
+  onSortChange: (sortBy: 'created_at' | 'updated_at', sortOrder: 'asc' | 'desc') => void;
   onPageChange: (page: number) => void;
   onShowCreate: () => void;
   onHideCreate: () => void;
@@ -65,7 +65,8 @@ export function NoticesPresenter({
     return sortOrder === 'desc' ? <HiSortDescending className="h-4 w-4" /> : <HiSortAscending className="h-4 w-4" />;
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
 

@@ -13,7 +13,7 @@ type Activity = {
   type: string;
   message: string;
   time: string;
-  created_at: string;
+  created_at: string | null;
 };
 
 type DashboardPresenterProps = {

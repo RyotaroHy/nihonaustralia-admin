@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { getPosts, updatePostStatus, deletePost, AdminPost } from './_api/get-posts';
 import { PostsPresenter } from './PostsPresenter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createSupabaseAdminClient } from '@/lib/supabase-browser';
 
 export function PostsContainer() {
-  const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,26 +25,34 @@ export function PostsContainer() {
       sortBy,
       sortOrder 
     }],
-    queryFn: () => getPosts(supabase, {
-      page: currentPage,
-      search: searchTerm,
-      status: statusFilter,
-      type: typeFilter,
-      sortBy,
-      sortOrder,
-    }),
+    queryFn: () => {
+      const adminClient = createSupabaseAdminClient();
+      return getPosts(adminClient, {
+        page: currentPage,
+        search: searchTerm,
+        status: statusFilter,
+        type: typeFilter,
+        sortBy,
+        sortOrder,
+      });
+    },
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ postId, status }: { postId: string; status: string }) => 
-      updatePostStatus(supabase, postId, status),
+    mutationFn: ({ postId, status }: { postId: string; status: string }) => {
+      const adminClient = createSupabaseAdminClient();
+      return updatePostStatus(adminClient, postId, status);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (postId: string) => deletePost(supabase, postId),
+    mutationFn: (postId: string) => {
+      const adminClient = createSupabaseAdminClient();
+      return deletePost(adminClient, postId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
     },

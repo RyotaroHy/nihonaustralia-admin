@@ -1,12 +1,10 @@
 'use client';
 
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useDashboardStats } from './_api/get-dashboard-stats';
 import { DashboardPresenter } from './DashboardPresenter';
 
 export function DashboardContainer() {
-  const supabase = useSupabaseClient();
-  const { data: stats, isLoading, error } = useDashboardStats(supabase);
+  const { data: stats, isLoading, error } = useDashboardStats();
 
   if (isLoading) {
     return <DashboardSkeleton />;

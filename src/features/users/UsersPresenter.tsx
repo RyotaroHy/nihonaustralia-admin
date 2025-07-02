@@ -13,7 +13,7 @@ type UsersPresenterProps = {
   isUpdating: boolean;
   onSearch: (search: string) => void;
   onFilterChange: (filter: 'all' | 'verified' | 'unverified') => void;
-  onSortChange: (sortBy: typeof sortBy, sortOrder: 'asc' | 'desc') => void;
+  onSortChange: (sortBy: 'created_at' | 'last_sign_in_at' | 'trust_score' | 'full_name', sortOrder: 'asc' | 'desc') => void;
   onPageChange: (page: number) => void;
   onVerificationToggle: (userId: string, verified: boolean, notes?: string) => void;
 };
