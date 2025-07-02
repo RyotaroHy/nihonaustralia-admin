@@ -18,11 +18,13 @@
     "migrate:admin": "tsx scripts/add-admin-columns.ts",
     "setup:admin": "tsx scripts/setup-admin-db.ts",
     "setup:admin:local": "tsx scripts/setup-admin-db.ts --local",
+    "setup:manual": "tsx scripts/setup-manual.ts",
     "deploy:admin": "tsx scripts/deploy-admin.ts",
     "db:link": "npx supabase link",
     "db:push": "npx supabase db push --linked",
     "db:pull": "npx supabase db pull --linked",
-    "db:diff": "npx supabase db diff --linked"
+    "db:diff": "npx supabase db diff --linked",
+    "admin:check": "tsx scripts/setup-manual.ts"
   },
   "lint-staged": {
     "**/*.{js,ts,jsx,tsx}": [
