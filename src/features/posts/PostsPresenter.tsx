@@ -1,5 +1,5 @@
 import { AdminPost } from './_api/get-posts';
-import { HiSearch, HiEye, HiHeart, HiSortAscending, HiSortDescending, HiTrash } from 'react-icons/hi';
+import { HiSearch, HiEye, HiSortAscending, HiSortDescending } from 'react-icons/hi';
 
 type PostsPresenterProps = {
   posts: AdminPost[];
@@ -7,18 +7,17 @@ type PostsPresenterProps = {
   hasMore: boolean;
   currentPage: number;
   searchTerm: string;
-  statusFilter: 'all' | 'draft' | 'public' | 'closed';
-  typeFilter: 'all' | 'job' | 'house' | 'qa' | 'service';
-  sortBy: 'created_at' | 'updated_at' | 'view_count' | 'trust_score';
+  statusFilter: 'all' | 'public' | 'draft' | 'archived';
+  typeFilter: 'all' | 'job' | 'community' | 'housing';
+  sortBy: 'created_at' | 'updated_at' | 'title' | 'status' | 'type';
   sortOrder: 'asc' | 'desc';
   isUpdating: boolean;
   onSearch: (search: string) => void;
-  onStatusFilterChange: (filter: 'all' | 'draft' | 'public' | 'closed') => void;
-  onTypeFilterChange: (filter: 'all' | 'job' | 'house' | 'qa' | 'service') => void;
-  onSortChange: (sortBy: 'created_at' | 'updated_at' | 'view_count' | 'trust_score', sortOrder: 'asc' | 'desc') => void;
+  onStatusFilterChange: (filter: 'all' | 'public' | 'draft' | 'archived') => void;
+  onTypeFilterChange: (filter: 'all' | 'job' | 'community' | 'housing') => void;
+  onSortChange: (sortBy: 'created_at' | 'updated_at' | 'title' | 'status' | 'type', sortOrder: 'asc' | 'desc') => void;
   onPageChange: (page: number) => void;
-  onStatusUpdate: (postId: string, status: string) => void;
-  onDelete: (postId: string) => void;
+  onStatusUpdate: (postId: string, status: string, moderationNotes?: string) => void;
 };
 
 export function PostsPresenter({
@@ -38,7 +37,6 @@ export function PostsPresenter({
   onSortChange,
   onPageChange,
   onStatusUpdate,
-  onDelete,
 }: PostsPresenterProps) {
   const handleSortClick = (field: typeof sortBy) => {
     const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
@@ -59,8 +57,8 @@ export function PostsPresenter({
     if (post.salary_min && post.salary_max) {
       return `$${post.salary_min.toLocaleString()} - $${post.salary_max.toLocaleString()}`;
     }
-    if (post.salary) {
-      return post.salary;
+    if (post.salary_min) {
+      return `$${post.salary_min.toLocaleString()}+`;
     }
     return 'Not specified';
   };
@@ -71,7 +69,7 @@ export function PostsPresenter({
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
       case 'draft':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'closed':
+      case 'archived':
         return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
@@ -82,22 +80,15 @@ export function PostsPresenter({
     switch (type) {
       case 'job':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'house':
+      case 'housing':
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'qa':
+      case 'community':
         return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-      case 'service':
-        return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
   };
 
-  const getTrustScoreColor = (score: number) => {
-    if (score >= 70) return 'text-green-600 dark:text-green-400';
-    if (score >= 40) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
-  };
 
   return (
     <div className="space-y-6">
@@ -132,7 +123,7 @@ export function PostsPresenter({
             <option value="all">All Status</option>
             <option value="public">Public</option>
             <option value="draft">Draft</option>
-            <option value="closed">Closed</option>
+            <option value="archived">Archived</option>
           </select>
 
           {/* Type Filter */}
@@ -143,9 +134,8 @@ export function PostsPresenter({
           >
             <option value="all">All Types</option>
             <option value="job">Jobs</option>
-            <option value="house">Housing</option>
-            <option value="qa">Q&A</option>
-            <option value="service">Services</option>
+            <option value="housing">Housing</option>
+            <option value="community">Community</option>
           </select>
 
           {/* Results Count */}
@@ -175,20 +165,20 @@ export function PostsPresenter({
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-                  onClick={() => handleSortClick('view_count')}
+                  onClick={() => handleSortClick('type')}
                 >
                   <div className="flex items-center space-x-1">
-                    <span>Engagement</span>
-                    {getSortIcon('view_count')}
+                    <span>Type</span>
+                    {getSortIcon('type')}
                   </div>
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-                  onClick={() => handleSortClick('trust_score')}
+                  onClick={() => handleSortClick('status')}
                 >
                   <div className="flex items-center space-x-1">
-                    <span>Trust</span>
-                    {getSortIcon('trust_score')}
+                    <span>Status</span>
+                    {getSortIcon('status')}
                   </div>
                 </th>
                 <th 
@@ -217,21 +207,16 @@ export function PostsPresenter({
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeColor(post.type)}`}>
                           {post.type}
                         </span>
-                        {post.company_name && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {post.company_name}
-                          </span>
-                        )}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {post.author_name || 'Anonymous'}
+                        {post.user_name || 'Anonymous'}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {post.author_email}
+                        {post.user_email}
                       </div>
                     </div>
                   </td>
@@ -244,33 +229,26 @@ export function PostsPresenter({
                     >
                       <option value="draft">Draft</option>
                       <option value="public">Public</option>
-                      <option value="closed">Closed</option>
+                      <option value="archived">Archived</option>
                     </select>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     <div>
-                      {post.state && post.suburb && (
-                        <div>{post.suburb}, {post.state}</div>
+                      {post.location && (
+                        <div>{post.location}</div>
                       )}
                       <div className="text-xs">{formatSalary(post)}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center">
-                        <HiEye className="h-4 w-4 mr-1" />
-                        {post.view_count}
-                      </div>
-                      <div className="flex items-center">
-                        <HiHeart className="h-4 w-4 mr-1" />
-                        {post.likes_count}
-                      </div>
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeColor(post.type)}`}>
+                      {post.type}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className={`font-medium ${getTrustScoreColor(post.trust_score)}`}>
-                      {post.trust_score}/90
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(post.status)}`}>
+                      {post.status}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {formatDate(post.created_at)}
@@ -278,12 +256,11 @@ export function PostsPresenter({
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => onDelete(post.id)}
-                        disabled={isUpdating}
-                        className="inline-flex items-center p-1 border border-transparent rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900 disabled:opacity-50"
-                        title="Delete post"
+                        onClick={() => window.open(`/posts/${post.id}`, '_blank')}
+                        className="inline-flex items-center p-1 border border-transparent rounded text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 dark:text-blue-400"
+                        title="View post"
                       >
-                        <HiTrash className="h-4 w-4" />
+                        <HiEye className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
