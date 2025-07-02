@@ -1,19 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { getPosts, updatePostStatus, deletePost, AdminPost } from './_api/get-posts';
+import { getPosts, updatePostStatus, AdminPost } from './_api/get-posts';
 import { PostsPresenter } from './PostsPresenter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createSupabaseAdminClient } from '@/lib/supabase-browser';
 
 export function PostsContainer() {
   const queryClient = useQueryClient();
   
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'public' | 'closed'>('all');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'job' | 'house' | 'qa' | 'service'>('all');
-  const [sortBy, setSortBy] = useState<'created_at' | 'updated_at' | 'view_count' | 'trust_score'>('created_at');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'public' | 'draft' | 'archived'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'job' | 'community' | 'housing'>('all');
+  const [sortBy, setSortBy] = useState<'created_at' | 'updated_at' | 'title' | 'status' | 'type'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const { data, isLoading, error } = useQuery({
@@ -26,8 +25,7 @@ export function PostsContainer() {
       sortOrder 
     }],
     queryFn: () => {
-      const adminClient = createSupabaseAdminClient();
-      return getPosts(adminClient, {
+      return getPosts({
         page: currentPage,
         search: searchTerm,
         status: statusFilter,
@@ -39,33 +37,16 @@ export function PostsContainer() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ postId, status }: { postId: string; status: string }) => {
-      const adminClient = createSupabaseAdminClient();
-      return updatePostStatus(adminClient, postId, status);
+    mutationFn: ({ postId, status, moderationNotes }: { postId: string; status: string; moderationNotes?: string }) => {
+      return updatePostStatus(postId, status, moderationNotes);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (postId: string) => {
-      const adminClient = createSupabaseAdminClient();
-      return deletePost(adminClient, postId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
-    },
-  });
-
-  const handleStatusUpdate = (postId: string, status: string) => {
-    statusMutation.mutate({ postId, status });
-  };
-
-  const handleDelete = (postId: string) => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      deleteMutation.mutate(postId);
-    }
+  const handleStatusUpdate = (postId: string, status: string, moderationNotes?: string) => {
+    statusMutation.mutate({ postId, status, moderationNotes });
   };
 
   const handleSearch = (search: string) => {
@@ -116,14 +97,13 @@ export function PostsContainer() {
       typeFilter={typeFilter}
       sortBy={sortBy}
       sortOrder={sortOrder}
-      isUpdating={statusMutation.isPending || deleteMutation.isPending}
+      isUpdating={statusMutation.isPending}
       onSearch={handleSearch}
       onStatusFilterChange={handleStatusFilterChange}
       onTypeFilterChange={handleTypeFilterChange}
       onSortChange={handleSortChange}
       onPageChange={handlePageChange}
       onStatusUpdate={handleStatusUpdate}
-      onDelete={handleDelete}
     />
   );
 }

@@ -18,11 +18,11 @@ export interface AdminUser {
  * Check if a user has admin privileges
  */
 export async function isAdminUser(
-  supabase: SupabaseClient<Database>, 
+  supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<boolean> {
   try {
-    // First try with admin_verified field
+    // Try to get admin status from database
     const { data, error } = await supabase
       .from('mypage_profiles')
       .select('admin_verified')
@@ -30,32 +30,31 @@ export async function isAdminUser(
       .single();
 
     if (error) {
-      // If admin_verified field doesn't exist, check if user is in admin list
+      // If admin_verified column doesn't exist, fall back to email check
       if (error.message.includes('admin_verified') || error.message.includes('column')) {
-        console.log(`⚠️  admin_verified field not found, checking against admin user list`);
+        console.log('⚠️ admin_verified field not found, using fallback email check');
         
-        // Create admin client to get user email
-        const adminSupabase = supabase;
-        const { data: authData, error: authError } = await adminSupabase.auth.admin.getUserById(userId);
-        if (authError || !authData.user?.email) return false;
+        // Get current user to check email
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
         
-        // Check if email is in our admin list
-        const adminEmails = ['admin@nihonaustralia.com', 'moderator@nihonaustralia.com', 'support@nihonaustralia.com'];
-        return adminEmails.includes(authData.user.email);
+        if (userError || !user || user.id !== userId) {
+          return false;
+        }
+
+        // Fallback admin emails
+        const adminEmails = [
+          'admin@nihonaustralia.com',
+          'moderator@nihonaustralia.com',
+          'support@nihonaustralia.com',
+          'ryotaro.ueda@outlook.com'
+        ];
+        
+        return adminEmails.includes(user.email || '');
       }
       return false;
     }
 
-    if (!data) {
-      return false;
-    }
-
-    // If admin_verified field exists, use it
-    if ('admin_verified' in data) {
-      return data.admin_verified === true;
-    }
-
-    return false;
+    return data?.admin_verified === true;
   } catch {
     return false;
   }
@@ -65,7 +64,7 @@ export async function isAdminUser(
  * Get admin user details
  */
 export async function getAdminUser(
-  supabase: SupabaseClient<Database>, 
+  supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<AdminUser | null> {
   try {
@@ -81,16 +80,14 @@ export async function getAdminUser(
       return null;
     }
 
-    // Get auth user data
-    const { data: authData, error: authError } = await supabase.auth.admin.getUserById(userId);
-
-    if (authError || !authData.user) {
-      return null;
-    }
+    // Get current user for email (assuming this user is calling this function)
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser();
 
     return {
       id: profile.id,
-      email: authData.user.email || '',
+      email: currentUser?.email || '',
       full_name: profile.full_name,
       phone: profile.phone,
       admin_verified: profile.admin_verified || false,
@@ -98,7 +95,7 @@ export async function getAdminUser(
       verified_at: profile.verified_at,
       verification_notes: profile.verification_notes,
       created_at: profile.created_at,
-      last_sign_in_at: authData.user.last_sign_in_at,
+      last_sign_in_at: currentUser?.last_sign_in_at || null,
     };
   } catch {
     return null;
@@ -112,7 +109,10 @@ export async function getCurrentAdminUser(
   supabase: SupabaseClient<Database>
 ): Promise<AdminUser | null> {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
     if (error || !user) {
       return null;
@@ -131,7 +131,10 @@ export async function verifyAdminSession(
   supabase: SupabaseClient<Database>
 ): Promise<{ isAdmin: boolean; user: AdminUser | null }> {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
     if (error || !user) {
       return { isAdmin: false, user: null };
@@ -151,7 +154,7 @@ export async function verifyAdminSession(
  */
 export enum AdminRole {
   SUPER_ADMIN = 'super_admin',
-  ADMIN = 'admin', 
+  ADMIN = 'admin',
   MODERATOR = 'moderator',
   SUPPORT = 'support',
 }
@@ -174,7 +177,10 @@ export async function hasAdminRole(
  * Error types for admin authentication
  */
 export class AdminAuthError extends Error {
-  constructor(message: string, public code: string) {
+  constructor(
+    message: string,
+    public code: string
+  ) {
     super(message);
     this.name = 'AdminAuthError';
   }

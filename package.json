@@ -24,7 +24,9 @@
     "db:push": "npx supabase db push --linked",
     "db:pull": "npx supabase db pull --linked",
     "db:diff": "npx supabase db diff --linked",
-    "admin:check": "tsx scripts/setup-manual.ts"
+    "admin:check": "tsx scripts/setup-manual.ts",
+    "admin:enable-fallback": "tsx scripts/enable-fallback-auth.ts",
+    "admin:test": "tsx scripts/test-admin-auth.ts"
   },
   "lint-staged": {
     "**/*.{js,ts,jsx,tsx}": [

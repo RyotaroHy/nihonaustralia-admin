@@ -5,10 +5,18 @@ import { HiBell, HiCog, HiLogout, HiUser } from 'react-icons/hi';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 import { useAdminUser } from '@/hooks/useAdminAuth';
+import { useAdminNotifications } from '@/hooks/useAdminNotifications';
+import { NotificationsDropdown } from './NotificationsDropdown';
+import { SettingsDropdown } from './SettingsDropdown';
+import { ProfileDropdown } from './ProfileDropdown';
 
 export function AdminHeader() {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  
   const { adminUser, isLoading } = useAdminUser();
+  const { unreadCount, urgentCount } = useAdminNotifications();
   const supabase = useSupabaseClient();
   const router = useRouter();
 
@@ -40,17 +48,60 @@ export function AdminHeader() {
         </div>
         
         <div className="flex items-center space-x-4">
-          <button className="p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-            <HiBell className="h-6 w-6" />
-          </button>
+          {/* Notifications */}
+          <div className="relative">
+            <button 
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                setShowSettings(false);
+                setShowUserMenu(false);
+              }}
+              className="relative p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
+            >
+              <HiBell className="h-6 w-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+              {urgentCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-3 w-3 bg-red-600 rounded-full animate-pulse"></span>
+              )}
+            </button>
+            
+            <NotificationsDropdown 
+              isOpen={showNotifications}
+              onClose={() => setShowNotifications(false)}
+            />
+          </div>
           
-          <button className="p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-            <HiCog className="h-6 w-6" />
-          </button>
+          {/* Settings */}
+          <div className="relative">
+            <button 
+              onClick={() => {
+                setShowSettings(!showSettings);
+                setShowNotifications(false);
+                setShowUserMenu(false);
+              }}
+              className="p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
+            >
+              <HiCog className="h-6 w-6" />
+            </button>
+            
+            <SettingsDropdown 
+              isOpen={showSettings}
+              onClose={() => setShowSettings(false)}
+            />
+          </div>
           
+          {/* Profile */}
           <div className="relative">
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
+              onClick={() => {
+                setShowUserMenu(!showUserMenu);
+                setShowNotifications(false);
+                setShowSettings(false);
+              }}
               className="flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors"
             >
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -68,43 +119,11 @@ export function AdminHeader() {
               </div>
             </button>
 
-            {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border dark:border-gray-700 z-10">
-                <div className="py-1">
-                  <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b dark:border-gray-700">
-                    <div className="font-medium">{adminUser?.full_name}</div>
-                    <div className="text-gray-500 dark:text-gray-400 text-xs">
-                      {adminUser?.email || 'admin@nihonaustralia.com'}
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={() => setShowUserMenu(false)}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
-                  >
-                    <HiUser className="mr-2 h-4 w-4" />
-                    プロフィール
-                  </button>
-                  
-                  <button
-                    onClick={handleSignOut}
-                    className="flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
-                  >
-                    <HiLogout className="mr-2 h-4 w-4" />
-                    ログアウト
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Close dropdown when clicking outside */}
-          {showUserMenu && (
-            <div
-              className="fixed inset-0 z-0"
-              onClick={() => setShowUserMenu(false)}
+            <ProfileDropdown 
+              isOpen={showUserMenu}
+              onClose={() => setShowUserMenu(false)}
             />
-          )}
+          </div>
         </div>
       </div>
     </header>

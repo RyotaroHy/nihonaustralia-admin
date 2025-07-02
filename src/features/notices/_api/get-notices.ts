@@ -1,23 +1,26 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/types/supabase';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createSupabaseAdminClient } from '@/lib/supabase-browser';
-
 export type AdminNotice = {
   id: string;
+  title_ja: string;
+  title_en: string | null;
   message_ja: string;
   message_en: string | null;
+  priority: string;
+  status: string;
+  publish_at: string | null;
+  expire_at: string | null;
+  target_audience: string | null;
   created_by: string;
-  created_by_name: string | null;
-  created_at: string | null;
-  updated_at: string | null;
+  creator_name: string;
+  created_at: string;
+  updated_at: string;
 };
 
 type GetNoticesParams = {
   page?: number;
   limit?: number;
   search?: string;
-  sortBy?: 'created_at' | 'updated_at';
+  status?: 'all' | 'draft' | 'published' | 'archived';
+  sortBy?: 'created_at' | 'updated_at' | 'title' | 'priority' | 'status';
   sortOrder?: 'asc' | 'desc';
 };
 
@@ -28,206 +31,92 @@ type GetNoticesResponse = {
 };
 
 export const getNotices = async (
-  supabase: SupabaseClient<Database>,
   params: GetNoticesParams = {}
 ): Promise<GetNoticesResponse> => {
   const {
     page = 1,
     limit = 20,
     search = '',
+    status = 'all',
     sortBy = 'created_at',
     sortOrder = 'desc',
   } = params;
 
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
+  const searchParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    search,
+    status,
+    sortBy,
+    sortOrder,
+  });
 
-  // Query notices
-  let query = supabase
-    .from('notices')
-    .select(`
-      id,
-      message_ja,
-      message_en,
-      created_by,
-      created_at,
-      updated_at
-    `)
-    .range(from, to);
-
-  // Apply search filter
-  if (search) {
-    query = query.or(`message_ja.ilike.%${search}%,message_en.ilike.%${search}%`);
+  const response = await fetch(`/api/notices?${searchParams}`);
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to fetch notices');
   }
 
-  // Apply sorting
-  query = query.order(sortBy, { ascending: sortOrder === 'asc' });
-
-  const { data: noticesData, error: noticesError } = await query;
-
-  if (noticesError) {
-    throw new Error(`Failed to fetch notices: ${noticesError.message}`);
-  }
-
-  // Get creator names from profiles
-  const creatorIds = [...new Set(noticesData?.map(n => n.created_by).filter(Boolean) || [])];
-  const creatorNames: Record<string, string> = {};
-
-  if (creatorIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from('mypage_profiles')
-      .select('id, full_name')
-      .in('id', creatorIds);
-
-    if (profiles) {
-      profiles.forEach(profile => {
-        creatorNames[profile.id] = profile.full_name || 'Unknown';
-      });
-    }
-  }
-
-  // Transform data
-  const notices: AdminNotice[] = (noticesData || []).map(notice => ({
-    id: notice.id,
-    message_ja: notice.message_ja || '',
-    message_en: notice.message_en,
-    created_by: notice.created_by || '',
-    created_by_name: creatorNames[notice.created_by] || 'Unknown',
-    created_at: notice.created_at,
-    updated_at: notice.updated_at,
-  }));
-
-  // Get total count for pagination
-  let countQuery = supabase
-    .from('notices')
-    .select('*', { count: 'exact', head: true });
-
-  if (search) {
-    countQuery = countQuery.or(`message_ja.ilike.%${search}%,message_en.ilike.%${search}%`);
-  }
-
-  const { count: totalCount } = await countQuery;
-
-  return {
-    notices,
-    totalCount: totalCount || 0,
-    hasMore: (from + notices.length) < (totalCount || 0),
-  };
+  return response.json();
 };
 
 // Note: useNotices hook removed - using direct queries in container components instead
 
-// Create notice
-type CreateNoticeData = {
+export type CreateNoticeData = {
+  title_ja: string;
+  title_en?: string;
   message_ja: string;
   message_en?: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'draft' | 'published' | 'archived';
+  publish_at?: string;
+  expire_at?: string;
+  target_audience?: string;
   created_by: string;
 };
 
-export const createNotice = async (
-  supabase: SupabaseClient<Database>,
-  data: CreateNoticeData
-): Promise<AdminNotice> => {
-  const { data: notice, error } = await supabase
-    .from('notices')
-    .insert({
-      message_ja: data.message_ja,
-      message_en: data.message_en || null,
-      created_by: data.created_by,
-    })
-    .select()
-    .single();
+export const createNotice = async (data: CreateNoticeData): Promise<AdminNotice> => {
+  const response = await fetch('/api/notices', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
 
-  if (error) {
-    throw new Error(`Failed to create notice: ${error.message}`);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to create notice');
   }
 
-  return {
-    id: notice.id,
-    message_ja: notice.message_ja || '',
-    message_en: notice.message_en,
-    created_by: notice.created_by || '',
-    created_by_name: 'You',
-    created_at: notice.created_at,
-    updated_at: notice.updated_at,
-  };
+  return response.json();
 };
 
-// Update notice
-type UpdateNoticeData = {
-  message_ja?: string;
-  message_en?: string;
-};
+export type UpdateNoticeData = Partial<Omit<CreateNoticeData, 'created_by'>>;
 
 export const updateNotice = async (
-  supabase: SupabaseClient<Database>,
   noticeId: string,
   data: UpdateNoticeData
 ): Promise<void> => {
-  const { error } = await supabase
-    .from('notices')
-    .update({
-      ...data,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', noticeId);
+  const response = await fetch('/api/notices', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ noticeId, ...data }),
+  });
 
-  if (error) {
-    throw new Error(`Failed to update notice: ${error.message}`);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to update notice');
   }
 };
 
-// Delete notice
-export const deleteNotice = async (
-  supabase: SupabaseClient<Database>,
-  noticeId: string
-): Promise<void> => {
-  const { error } = await supabase
-    .from('notices')
-    .delete()
-    .eq('id', noticeId);
+export const deleteNotice = async (noticeId: string): Promise<void> => {
+  const response = await fetch(`/api/notices?id=${noticeId}`, {
+    method: 'DELETE',
+  });
 
-  if (error) {
-    throw new Error(`Failed to delete notice: ${error.message}`);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to delete notice');
   }
 };
 
-// Mutation hooks
-export const useCreateNotice = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ supabase, data }: { supabase: SupabaseClient<Database>; data: CreateNoticeData }) =>
-      createNotice(supabase, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-notices'] });
-    },
-  });
-};
-
-export const useUpdateNotice = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ supabase, noticeId, data }: { 
-      supabase: SupabaseClient<Database>; 
-      noticeId: string; 
-      data: UpdateNoticeData 
-    }) => updateNotice(supabase, noticeId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-notices'] });
-    },
-  });
-};
-
-export const useDeleteNotice = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ supabase, noticeId }: { supabase: SupabaseClient<Database>; noticeId: string }) =>
-      deleteNotice(supabase, noticeId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-notices'] });
-    },
-  });
-};

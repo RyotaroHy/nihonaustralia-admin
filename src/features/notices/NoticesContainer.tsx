@@ -7,11 +7,12 @@ import {
   createNotice, 
   updateNotice, 
   deleteNotice, 
-  AdminNotice 
+  AdminNotice,
+  CreateNoticeData,
+  UpdateNoticeData
 } from './_api/get-notices';
 import { NoticesPresenter } from './NoticesPresenter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createSupabaseAdminClient } from '@/lib/supabase-browser';
 
 export function NoticesContainer() {
   const queryClient = useQueryClient();
@@ -19,7 +20,8 @@ export function NoticesContainer() {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'created_at' | 'updated_at'>('created_at');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published' | 'archived'>('all');
+  const [sortBy, setSortBy] = useState<'created_at' | 'updated_at' | 'title' | 'priority' | 'status'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingNotice, setEditingNotice] = useState<AdminNotice | null>(null);
@@ -27,15 +29,16 @@ export function NoticesContainer() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-notices', { 
       page: currentPage, 
-      search: searchTerm, 
+      search: searchTerm,
+      status: statusFilter,
       sortBy,
       sortOrder 
     }],
     queryFn: () => {
-      const adminClient = createSupabaseAdminClient();
-      return getNotices(adminClient, {
+      return getNotices({
         page: currentPage,
         search: searchTerm,
+        status: statusFilter,
         sortBy,
         sortOrder,
       });
@@ -43,9 +46,8 @@ export function NoticesContainer() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: { message_ja: string; message_en?: string }) => {
-      const adminClient = createSupabaseAdminClient();
-      return createNotice(adminClient, {
+    mutationFn: (data: CreateNoticeData) => {
+      return createNotice({
         ...data,
         created_by: user?.id || '',
       });
@@ -59,10 +61,9 @@ export function NoticesContainer() {
   const updateMutation = useMutation({
     mutationFn: ({ noticeId, data }: { 
       noticeId: string; 
-      data: { message_ja?: string; message_en?: string } 
+      data: UpdateNoticeData 
     }) => {
-      const adminClient = createSupabaseAdminClient();
-      return updateNotice(adminClient, noticeId, data);
+      return updateNotice(noticeId, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notices'] });
@@ -72,19 +73,18 @@ export function NoticesContainer() {
 
   const deleteMutation = useMutation({
     mutationFn: (noticeId: string) => {
-      const adminClient = createSupabaseAdminClient();
-      return deleteNotice(adminClient, noticeId);
+      return deleteNotice(noticeId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notices'] });
     },
   });
 
-  const handleCreate = (data: { message_ja: string; message_en?: string }) => {
+  const handleCreate = (data: CreateNoticeData) => {
     createMutation.mutate(data);
   };
 
-  const handleUpdate = (noticeId: string, data: { message_ja?: string; message_en?: string }) => {
+  const handleUpdate = (noticeId: string, data: UpdateNoticeData) => {
     updateMutation.mutate({ noticeId, data });
   };
 
@@ -96,6 +96,11 @@ export function NoticesContainer() {
 
   const handleSearch = (search: string) => {
     setSearchTerm(search);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (filter: typeof statusFilter) => {
+    setStatusFilter(filter);
     setCurrentPage(1);
   };
 
@@ -128,12 +133,14 @@ export function NoticesContainer() {
       hasMore={data.hasMore}
       currentPage={currentPage}
       searchTerm={searchTerm}
+      statusFilter={statusFilter}
       sortBy={sortBy}
       sortOrder={sortOrder}
       isUpdating={createMutation.isPending || updateMutation.isPending || deleteMutation.isPending}
       showCreateModal={showCreateModal}
       editingNotice={editingNotice}
       onSearch={handleSearch}
+      onStatusFilterChange={handleStatusFilterChange}
       onSortChange={handleSortChange}
       onPageChange={handlePageChange}
       onShowCreate={() => setShowCreateModal(true)}

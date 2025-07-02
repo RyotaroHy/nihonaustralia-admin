@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { getUsers, updateUserVerification, AdminUser } from './_api/get-users';
 import { UsersPresenter } from './UsersPresenter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createSupabaseAdminClient } from '@/lib/supabase-browser';
 
 export function UsersContainer() {
   const queryClient = useQueryClient();
@@ -24,8 +23,7 @@ export function UsersContainer() {
       sortOrder 
     }],
     queryFn: () => {
-      const adminClient = createSupabaseAdminClient();
-      return getUsers(adminClient, {
+      return getUsers({
         page: currentPage,
         search: searchTerm,
         verificationStatus: verificationFilter,
@@ -41,8 +39,7 @@ export function UsersContainer() {
       verified: boolean; 
       notes?: string 
     }) => {
-      const adminClient = createSupabaseAdminClient();
-      return updateUserVerification(adminClient, userId, verified, notes);
+      return updateUserVerification(userId, verified, notes);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });

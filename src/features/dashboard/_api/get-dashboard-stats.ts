@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 import { useQuery } from '@tanstack/react-query';
-import { createSupabaseAdminClient } from '@/lib/supabase-browser';
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 type DashboardStats = {
   totalUsers: number;
@@ -176,8 +176,8 @@ export const useDashboardStats = () => {
   return useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => {
-      const adminClient = createSupabaseAdminClient();
-      return getDashboardStats(adminClient);
+      const client = createSupabaseBrowserClient();
+      return getDashboardStats(client);
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });

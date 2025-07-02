@@ -46,11 +46,21 @@ function SignInForm() {
         return;
       }
 
-      // Check if user has admin privileges
-      const hasAdminAccess = await isAdminUser(supabase as any, data.user.id);
+      // Check if user has admin privileges via API
+      const response = await fetch('/api/auth/check-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: data.user.id })
+      });
 
-      if (!hasAdminAccess) {
-        // Sign out the user since they don't have admin access
+      if (!response.ok) {
+        await supabase.auth.signOut();
+        setError('管理者権限の確認に失敗しました。');
+        return;
+      }
+
+      const { isAdmin } = await response.json();
+      if (!isAdmin) {
         await supabase.auth.signOut();
         setError('管理者権限がありません。このアカウントではアクセスできません。');
         return;
@@ -83,35 +93,34 @@ function SignInForm() {
             </p>
           </div>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSignIn} suppressHydrationWarning>
-          <div className="rounded-md shadow-sm -space-y-px" suppressHydrationWarning>
-            <div suppressHydrationWarning>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="メールアドレス"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                suppressHydrationWarning
-              />
+        <div suppressHydrationWarning>
+          <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
+            <div className="rounded-md shadow-sm -space-y-px">
+              <div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="メールアドレス"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="パスワード"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
             </div>
-            <div suppressHydrationWarning>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="パスワード"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                suppressHydrationWarning
-              />
-            </div>
-          </div>
 
           {error && (
             <div className="text-red-600 text-sm text-center">
@@ -128,7 +137,8 @@ function SignInForm() {
               {loading ? 'ログイン中...' : 'ログイン'}
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
