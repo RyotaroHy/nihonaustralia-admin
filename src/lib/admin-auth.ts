@@ -1,5 +1,5 @@
-import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 export interface AdminUser {
   id: string;
@@ -31,12 +31,20 @@ export async function isAdminUser(
 
     if (error) {
       // If admin_verified column doesn't exist, fall back to email check
-      if (error.message.includes('admin_verified') || error.message.includes('column')) {
-        console.log('⚠️ admin_verified field not found, using fallback email check');
-        
+      if (
+        error.message.includes('admin_verified') ||
+        error.message.includes('column')
+      ) {
+        console.log(
+          '⚠️ admin_verified field not found, using fallback email check'
+        );
+
         // Get current user to check email
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
         if (userError || !user || user.id !== userId) {
           return false;
         }
@@ -46,9 +54,9 @@ export async function isAdminUser(
           'admin@nihonaustralia.com',
           'moderator@nihonaustralia.com',
           'support@nihonaustralia.com',
-          'ryotaro.ueda@outlook.com'
+          'ryotaro.ueda@outlook.com',
         ];
-        
+
         return adminEmails.includes(user.email || '');
       }
       return false;
