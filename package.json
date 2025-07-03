@@ -8,8 +8,13 @@
     "start": "next start -p 3001",
     "lint": "next lint",
     "format": "prettier --write .",
-    "prepare": "husky install",
+    "format:check": "prettier --check .",
+    "lint:check": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "typecheck": "tsc --noEmit",
+    "check-all": "npm run lint:check && npm run typecheck && npm run format:check",
+    "fix-all": "npm run lint:fix && npm run format",
+    "prepare": "husky install",
     "test": "jest --watch",
     "test:ci": "jest",
     "test:coverage": "jest --coverage",
@@ -29,13 +34,15 @@
     "admin:test": "tsx scripts/test-admin-auth.ts"
   },
   "lint-staged": {
-    "**/*.{js,ts,jsx,tsx}": [
+    "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
-      "prettier --write",
-      "tsc --noEmit --skipLibCheck --pretty false"
-    ],
-    "**/*.{json,md,yml}": [
       "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css,scss}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "bash -c 'npm run typecheck'"
     ]
   },
   "dependencies": {
