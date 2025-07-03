@@ -60,11 +60,13 @@ module "nextjs_serverless" {
     SUPABASE_SERVICE_ROLE_KEY    = var.supabase_service_role_key
     NEXTAUTH_SECRET              = var.nextauth_secret
     NEXTAUTH_URL                 = "https://${local.domain_name}"
+    NEXT_TELEMETRY_DISABLED      = "1"
   }
 
-  # Cost optimization settings
-  lambda_memory_size = var.lambda_memory_size
-  lambda_timeout     = var.lambda_timeout
+  # Minimal cost settings
+  lambda_memory_size     = var.lambda_memory_size
+  lambda_timeout         = var.lambda_timeout
+  cloudfront_price_class = var.cloudfront_price_class
   
   tags = {
     Project     = "NihonAustralia-Admin"

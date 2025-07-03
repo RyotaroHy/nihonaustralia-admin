@@ -31,13 +31,7 @@ output "admin_panel_url" {
 output "estimated_monthly_cost" {
   description = "Estimated monthly cost breakdown (USD)"
   value = {
-    lambda_requests_1m     = "$0.20"
-    lambda_compute_gb_sec  = "$0.0000166667 per GB-second"
-    cloudfront_requests    = "$0.0075 per 10,000 requests"
-    cloudfront_data_out    = "$0.085 per GB"
-    s3_storage             = "$0.023 per GB"
-    total_estimated_low    = "$5-15/month for light usage"
-    total_estimated_high   = "$20-50/month for moderate usage"
-    note                   = "Actual costs depend on traffic and usage patterns"
+    total_estimated = "$2-10/month for typical admin usage"
+    note           = "Minimal serverless setup: Lambda + CloudFront + S3 only"
   }
 }

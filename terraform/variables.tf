@@ -55,9 +55,9 @@ variable "nextauth_secret" {
 
 # Lambda Configuration for Cost Optimization
 variable "lambda_memory_size" {
-  description = "Lambda memory size in MB (128-10240). Lower = cheaper but slower"
+  description = "Lambda memory size in MB (128-10240). Lower = cheaper"
   type        = number
-  default     = 512  # Good balance of performance and cost
+  default     = 256  # Minimal memory for cost savings
   
   validation {
     condition     = var.lambda_memory_size >= 128 && var.lambda_memory_size <= 10240
@@ -76,18 +76,6 @@ variable "lambda_timeout" {
   }
 }
 
-# Cost Optimization Features
-variable "enable_cloudfront_caching" {
-  description = "Enable CloudFront caching for static assets"
-  type        = bool
-  default     = true
-}
-
-variable "enable_lambda_warmup" {
-  description = "Enable Lambda warmup to reduce cold starts (small additional cost)"
-  type        = bool
-  default     = false  # Disabled by default to minimize costs
-}
 
 variable "cloudfront_price_class" {
   description = "CloudFront price class (All, 100, 200)"
@@ -100,27 +88,3 @@ variable "cloudfront_price_class" {
   }
 }
 
-# Monitoring and Alerting
-variable "enable_alerts" {
-  description = "Enable CloudWatch alerts and SNS notifications"
-  type        = bool
-  default     = false  # Disabled by default to minimize costs
-}
-
-variable "enable_billing_alerts" {
-  description = "Enable billing alerts"
-  type        = bool
-  default     = true  # Enabled by default for cost control
-}
-
-variable "billing_alert_threshold" {
-  description = "Billing alert threshold in USD"
-  type        = number
-  default     = 50  # Alert when monthly costs exceed $50
-}
-
-variable "alert_email" {
-  description = "Email address for alerts (required if enable_alerts is true)"
-  type        = string
-  default     = ""
-}

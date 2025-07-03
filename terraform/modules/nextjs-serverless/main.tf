@@ -272,38 +272,6 @@ resource "aws_cloudfront_distribution" "nextjs_distribution" {
   tags = var.tags
 }
 
-# Optional: Lambda warmup to reduce cold starts
-resource "aws_cloudwatch_event_rule" "lambda_warmup" {
-  count = var.enable_lambda_warmup ? 1 : 0
-  
-  name                = "${local.function_name}-warmup"
-  description         = "Keep Lambda warm"
-  schedule_expression = "rate(5 minutes)"
-  
-  tags = var.tags
-}
-
-resource "aws_cloudwatch_event_target" "lambda_warmup" {
-  count = var.enable_lambda_warmup ? 1 : 0
-  
-  rule      = aws_cloudwatch_event_rule.lambda_warmup[0].name
-  target_id = "WarmupTarget"
-  arn       = aws_lambda_function.nextjs_lambda.arn
-  
-  input = jsonencode({
-    warmup = true
-  })
-}
-
-resource "aws_lambda_permission" "allow_cloudwatch_warmup" {
-  count = var.enable_lambda_warmup ? 1 : 0
-  
-  statement_id  = "AllowExecutionFromCloudWatch"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.nextjs_lambda.function_name
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.lambda_warmup[0].arn
-}
 
 # Data sources
 data "aws_region" "current" {}

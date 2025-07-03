@@ -90,16 +90,16 @@ show_outputs() {
 
 # Estimate costs
 estimate_costs() {
-    print_warning "COST ESTIMATION:"
-    echo "Based on AWS pricing (ap-southeast-2):"
-    echo "- Lambda requests (1M/month): ~$0.20"
-    echo "- Lambda compute (1GB-sec): ~$0.0000166667"
-    echo "- CloudFront requests (1M/month): ~$0.75"
-    echo "- CloudFront data transfer (10GB/month): ~$0.85"
-    echo "- S3 storage (1GB): ~$0.025"
+    print_warning "MINIMAL COST ESTIMATION:"
+    echo "Based on AWS pricing (ap-southeast-2) - BASIC SETUP ONLY:"
+    echo "- Lambda requests (100k/month): ~$0.02"
+    echo "- Lambda compute (256MB, minimal usage): ~$0.50"
+    echo "- CloudFront requests (100k/month): ~$0.08"
+    echo "- CloudFront data transfer (1GB/month): ~$0.09"
+    echo "- S3 storage (100MB): ~$0.002"
     echo ""
-    echo "ESTIMATED TOTAL: $5-20/month for typical admin panel usage"
-    echo "Note: Actual costs depend on traffic patterns"
+    echo "ESTIMATED TOTAL: $2-5/month for light admin usage"
+    echo "Note: No monitoring, secrets manager, or warmup included"
     echo ""
 }
 

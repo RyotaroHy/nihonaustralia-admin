@@ -49,11 +49,6 @@ variable "cloudfront_price_class" {
   default     = "PriceClass_100"
 }
 
-variable "enable_lambda_warmup" {
-  description = "Enable Lambda warmup to reduce cold starts"
-  type        = bool
-  default     = false
-}
 
 variable "tags" {
   description = "Tags to apply to resources"

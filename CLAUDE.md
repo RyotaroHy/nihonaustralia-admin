@@ -163,9 +163,9 @@ permissions and access controls.
 
 The admin panel can be deployed to AWS using Terraform for a cost-optimized serverless architecture:
 
-**Estimated costs**: $5-50/month depending on usage
+**Estimated costs**: $2-5/month for minimal setup
 
-**Architecture**: CloudFront + Lambda + S3 + Secrets Manager + Supabase
+**Architecture**: CloudFront + Lambda (256MB) + S3 + Supabase
 
 ### Deployment Commands
 
