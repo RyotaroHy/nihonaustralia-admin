@@ -156,3 +156,41 @@ permissions and access controls.
 - Always run `npm run typecheck` before committing
 - Share types with main web app when possible
 - Use proper TypeScript for all components and functions
+
+## Deployment
+
+### Serverless AWS Deployment
+
+The admin panel can be deployed to AWS using Terraform for a cost-optimized serverless architecture:
+
+**Estimated costs**: $5-50/month depending on usage
+
+**Architecture**: CloudFront + Lambda + S3 + Secrets Manager + Supabase
+
+### Deployment Commands
+
+```bash
+# Quick deployment
+chmod +x terraform/deploy.sh
+./terraform/deploy.sh
+
+# Manual deployment
+cd terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+### Prerequisites
+
+- AWS CLI configured (`aws configure`)
+- Terraform installed
+- Node.js and npm
+
+### Configuration Files
+
+- `terraform/terraform.tfvars` - Infrastructure configuration
+- `.env.production` - Application environment variables
+- `terraform/deploy.sh` - Automated deployment script
+
+See `DEPLOYMENT.md` for detailed deployment instructions.

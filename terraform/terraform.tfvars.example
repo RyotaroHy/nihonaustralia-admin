@@ -1,0 +1,25 @@
+# AWS Configuration
+aws_region = "ap-southeast-2"  # Sydney region for Australia
+environment = "prod"
+
+# Domain Configuration (Optional)
+# custom_domain = "admin.yourdomain.com"
+# certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/abc123..."
+
+# Supabase Configuration
+supabase_url = "https://your-project.supabase.co"
+supabase_anon_key = "your-anon-key"
+supabase_service_role_key = "your-service-role-key"
+
+# Authentication
+nextauth_secret = "your-nextauth-secret-key"
+
+# Lambda Configuration (Cost Optimization)
+lambda_memory_size = 512    # Balance of performance and cost
+lambda_timeout = 30         # Sufficient for most admin operations
+
+# CloudFront Configuration
+cloudfront_price_class = "PriceClass_100"  # Use only US, Canada, Europe for cost savings
+
+# Optional Features
+enable_lambda_warmup = false  # Disabled to minimize costs
