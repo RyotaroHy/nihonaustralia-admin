@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerAdminClient } from '@/lib/supabase-server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,32 +13,36 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'desc';
 
     const adminClient = createSupabaseServerAdminClient();
-    
+
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    // Get posts data
+    // Get posts data with job_posts join for salary
     let query = adminClient
       .from('posts')
-      .select(`
+      .select(
+        `
         id,
         type,
         status,
         title,
         content,
         location,
-        salary_min,
-        salary_max,
-        salary_type,
         user_id,
         created_at,
-        updated_at
-      `)
+        updated_at,
+        job_posts(
+          salary
+        )
+      `
+      )
       .range(from, to);
 
     // Apply search filter
     if (search) {
-      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,location.ilike.%${search}%`);
+      query = query.or(
+        `title.ilike.%${search}%,content.ilike.%${search}%,location.ilike.%${search}%`
+      );
     }
 
     // Apply status filter
@@ -65,26 +69,31 @@ export async function GET(request: NextRequest) {
     const { data: postsData, error: postsError } = await query;
 
     if (postsError) {
-      return NextResponse.json({ error: `Failed to fetch posts: ${postsError.message}` }, { status: 500 });
+      return NextResponse.json(
+        { error: `Failed to fetch posts: ${postsError.message}` },
+        { status: 500 }
+      );
     }
 
     // Get user information for each post
-    const userIds = [...new Set(postsData?.map(p => p.user_id).filter(Boolean) || [])];
+    const userIds = [
+      ...new Set(postsData?.map(p => p.user_id).filter(Boolean) || []),
+    ];
     let users: any[] = [];
-    
+
     if (userIds.length > 0) {
       const { data: usersData } = await adminClient
         .from('mypage_profiles')
         .select('id, full_name')
         .in('id', userIds);
-      
+
       users = usersData || [];
     }
 
     // Merge posts with user data
     const posts = (postsData || []).map(post => {
       const user = users.find(u => u.id === post.user_id);
-      
+
       return {
         id: post.id,
         type: post.type,
@@ -92,9 +101,7 @@ export async function GET(request: NextRequest) {
         title: post.title,
         content: post.content,
         location: post.location,
-        salary_min: post.salary_min,
-        salary_max: post.salary_max,
-        salary_type: post.salary_type,
+        salary: post.job_posts?.[0]?.salary || null,
         user_id: post.user_id,
         user_name: user?.full_name || 'Unknown User',
         created_at: post.created_at,
@@ -108,7 +115,9 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact', head: true });
 
     if (search) {
-      countQuery = countQuery.or(`title.ilike.%${search}%,content.ilike.%${search}%,location.ilike.%${search}%`);
+      countQuery = countQuery.or(
+        `title.ilike.%${search}%,content.ilike.%${search}%,location.ilike.%${search}%`
+      );
     }
     if (status !== 'all') {
       countQuery = countQuery.eq('status', status);
@@ -122,12 +131,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       posts,
       totalCount: totalCount || 0,
-      hasMore: (from + posts.length) < (totalCount || 0),
+      hasMore: from + posts.length < (totalCount || 0),
     });
-
   } catch (error) {
     console.error('Error fetching posts:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -136,7 +147,10 @@ export async function PATCH(request: NextRequest) {
     const { postId, status, moderationNotes } = await request.json();
 
     if (!postId) {
-      return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Post ID is required' },
+        { status: 400 }
+      );
     }
 
     const adminClient = createSupabaseServerAdminClient();
@@ -155,13 +169,18 @@ export async function PATCH(request: NextRequest) {
       .eq('id', postId);
 
     if (error) {
-      return NextResponse.json({ error: `Failed to update post: ${error.message}` }, { status: 500 });
+      return NextResponse.json(
+        { error: `Failed to update post: ${error.message}` },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });
-
   } catch (error) {
     console.error('Error updating post:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

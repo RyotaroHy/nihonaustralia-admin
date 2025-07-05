@@ -5,9 +5,7 @@ export type AdminPost = {
   title: string;
   content: string;
   location: string | null;
-  salary_min: number | null;
-  salary_max: number | null;
-  salary_type: string | null;
+  salary: string | null;
   user_id: string;
   user_name: string;
   created_at: string;
@@ -54,7 +52,7 @@ export const getPosts = async (
   });
 
   const response = await fetch(`/api/posts?${searchParams}`);
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to fetch posts');

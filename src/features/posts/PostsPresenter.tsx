@@ -1,5 +1,10 @@
+import {
+  HiEye,
+  HiSearch,
+  HiSortAscending,
+  HiSortDescending,
+} from 'react-icons/hi';
 import { AdminPost } from './_api/get-posts';
-import { HiSearch, HiEye, HiSortAscending, HiSortDescending } from 'react-icons/hi';
 
 type PostsPresenterProps = {
   posts: AdminPost[];
@@ -13,11 +18,20 @@ type PostsPresenterProps = {
   sortOrder: 'asc' | 'desc';
   isUpdating: boolean;
   onSearch: (search: string) => void;
-  onStatusFilterChange: (filter: 'all' | 'public' | 'draft' | 'archived') => void;
+  onStatusFilterChange: (
+    filter: 'all' | 'public' | 'draft' | 'archived'
+  ) => void;
   onTypeFilterChange: (filter: 'all' | 'job' | 'community' | 'housing') => void;
-  onSortChange: (sortBy: 'created_at' | 'updated_at' | 'title' | 'status' | 'type', sortOrder: 'asc' | 'desc') => void;
+  onSortChange: (
+    sortBy: 'created_at' | 'updated_at' | 'title' | 'status' | 'type',
+    sortOrder: 'asc' | 'desc'
+  ) => void;
   onPageChange: (page: number) => void;
-  onStatusUpdate: (postId: string, status: string, moderationNotes?: string) => void;
+  onStatusUpdate: (
+    postId: string,
+    status: string,
+    moderationNotes?: string
+  ) => void;
 };
 
 export function PostsPresenter({
@@ -45,7 +59,11 @@ export function PostsPresenter({
 
   const getSortIcon = (field: typeof sortBy) => {
     if (sortBy !== field) return null;
-    return sortOrder === 'desc' ? <HiSortDescending className="h-4 w-4" /> : <HiSortAscending className="h-4 w-4" />;
+    return sortOrder === 'desc' ? (
+      <HiSortDescending className="h-4 w-4" />
+    ) : (
+      <HiSortAscending className="h-4 w-4" />
+    );
   };
 
   const formatDate = (dateString: string | null) => {
@@ -54,11 +72,8 @@ export function PostsPresenter({
   };
 
   const formatSalary = (post: AdminPost) => {
-    if (post.salary_min && post.salary_max) {
-      return `$${post.salary_min.toLocaleString()} - $${post.salary_max.toLocaleString()}`;
-    }
-    if (post.salary_min) {
-      return `$${post.salary_min.toLocaleString()}+`;
+    if (post.salary) {
+      return post.salary;
     }
     return 'Not specified';
   };
@@ -89,11 +104,12 @@ export function PostsPresenter({
     }
   };
 
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Posts</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Posts
+        </h1>
         <p className="text-gray-600 dark:text-gray-400">
           Manage job posts and content ({totalCount.toLocaleString()} total)
         </p>
@@ -109,7 +125,7 @@ export function PostsPresenter({
               type="text"
               placeholder="Search posts..."
               value={searchTerm}
-              onChange={(e) => onSearch(e.target.value)}
+              onChange={e => onSearch(e.target.value)}
               className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
@@ -117,7 +133,9 @@ export function PostsPresenter({
           {/* Status Filter */}
           <select
             value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value as typeof statusFilter)}
+            onChange={e =>
+              onStatusFilterChange(e.target.value as typeof statusFilter)
+            }
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           >
             <option value="all">All Status</option>
@@ -129,7 +147,9 @@ export function PostsPresenter({
           {/* Type Filter */}
           <select
             value={typeFilter}
-            onChange={(e) => onTypeFilterChange(e.target.value as typeof typeFilter)}
+            onChange={e =>
+              onTypeFilterChange(e.target.value as typeof typeFilter)
+            }
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           >
             <option value="all">All Types</option>
@@ -163,7 +183,7 @@ export function PostsPresenter({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Location & Salary
                 </th>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSortClick('type')}
                 >
@@ -172,7 +192,7 @@ export function PostsPresenter({
                     {getSortIcon('type')}
                   </div>
                 </th>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSortClick('status')}
                 >
@@ -181,7 +201,7 @@ export function PostsPresenter({
                     {getSortIcon('status')}
                   </div>
                 </th>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSortClick('created_at')}
                 >
@@ -196,15 +216,20 @@ export function PostsPresenter({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {posts.map((post) => (
-                <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+              {posts.map(post => (
+                <tr
+                  key={post.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
                   <td className="px-6 py-4">
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-xs">
                         {post.title}
                       </div>
                       <div className="flex items-center space-x-2 mt-1">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeColor(post.type)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeColor(post.type)}`}
+                        >
                           {post.type}
                         </span>
                       </div>
@@ -223,7 +248,7 @@ export function PostsPresenter({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <select
                       value={post.status}
-                      onChange={(e) => onStatusUpdate(post.id, e.target.value)}
+                      onChange={e => onStatusUpdate(post.id, e.target.value)}
                       disabled={isUpdating}
                       className={`text-xs font-medium rounded-full px-2 py-1 border-0 ${getStatusColor(post.status)} disabled:opacity-50`}
                     >
@@ -234,19 +259,21 @@ export function PostsPresenter({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     <div>
-                      {post.location && (
-                        <div>{post.location}</div>
-                      )}
+                      {post.location && <div>{post.location}</div>}
                       <div className="text-xs">{formatSalary(post)}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeColor(post.type)}`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeColor(post.type)}`}
+                    >
                       {post.type}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(post.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(post.status)}`}
+                    >
                       {post.status}
                     </span>
                   </td>
@@ -256,7 +283,9 @@ export function PostsPresenter({
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => window.open(`/posts/${post.id}`, '_blank')}
+                        onClick={() =>
+                          window.open(`/posts/${post.id}`, '_blank')
+                        }
                         className="inline-flex items-center p-1 border border-transparent rounded text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 dark:text-blue-400"
                         title="View post"
                       >

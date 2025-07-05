@@ -264,9 +264,6 @@ export type Database = {
           post_id: string;
           postal_code: string | null;
           salary: string | null;
-          salary_max: number | null;
-          salary_min: number | null;
-          salary_type: string | null;
           state: Database['public']['Enums']['au_state_enum'] | null;
           suburb: string | null;
           title: string;
@@ -283,9 +280,6 @@ export type Database = {
           post_id: string;
           postal_code?: string | null;
           salary?: string | null;
-          salary_max?: number | null;
-          salary_min?: number | null;
-          salary_type?: string | null;
           state?: Database['public']['Enums']['au_state_enum'] | null;
           suburb?: string | null;
           title: string;
@@ -302,9 +296,6 @@ export type Database = {
           post_id?: string;
           postal_code?: string | null;
           salary?: string | null;
-          salary_max?: number | null;
-          salary_min?: number | null;
-          salary_type?: string | null;
           state?: Database['public']['Enums']['au_state_enum'] | null;
           suburb?: string | null;
           title?: string;
@@ -769,9 +760,6 @@ export type Database = {
           profile_image_url: string | null;
           required_english_level_ids: number[] | null;
           salary: string | null;
-          salary_max: number | null;
-          salary_min: number | null;
-          salary_type: string | null;
           state: Database['public']['Enums']['au_state_enum'] | null;
           status: string | null;
           suburb: string | null;
