@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerAdminClient } from '@/lib/supabase-server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,14 +12,15 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'desc';
 
     const adminClient = createSupabaseServerAdminClient();
-    
+
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
     // Get profiles data
     let query = adminClient
       .from('mypage_profiles')
-      .select(`
+      .select(
+        `
         id,
         full_name,
         phone,
@@ -32,7 +33,8 @@ export async function GET(request: NextRequest) {
         verified_at,
         verification_notes,
         created_at
-      `)
+      `
+      )
       .range(from, to);
 
     // Apply search filter
@@ -57,17 +59,22 @@ export async function GET(request: NextRequest) {
     const { data: profilesData, error: profilesError } = await query;
 
     if (profilesError) {
-      return NextResponse.json({ error: `Failed to fetch users: ${profilesError.message}` }, { status: 500 });
+      return NextResponse.json(
+        { error: `Failed to fetch users: ${profilesError.message}` },
+        { status: 500 }
+      );
     }
 
     // Get auth user data for emails and last sign in
     const userIds = profilesData?.map(p => p.id) || [];
     let authUsers: any = { users: [] };
-    
+
     try {
-      const { data, error: authError } = await adminClient.auth.admin.listUsers({
-        perPage: 1000,
-      });
+      const { data, error: authError } = await adminClient.auth.admin.listUsers(
+        {
+          perPage: 1000,
+        }
+      );
       if (!authError) {
         authUsers = data;
       }
@@ -78,7 +85,7 @@ export async function GET(request: NextRequest) {
     // Merge profile and auth data
     const users = (profilesData || []).map(profile => {
       const authUser = authUsers?.users?.find((u: any) => u.id === profile.id);
-      
+
       return {
         id: profile.id,
         email: authUser?.email || '',
@@ -87,12 +94,13 @@ export async function GET(request: NextRequest) {
         gender: profile.gender,
         au_state: profile.au_state,
         visa: profile.visa ? String(profile.visa) : null,
-        origin_country: profile.origin_country ? String(profile.origin_country) : null,
+        origin_country: profile.origin_country
+          ? String(profile.origin_country)
+          : null,
         admin_verified: profile.admin_verified || false,
         verified_by: profile.verified_by,
         verified_at: profile.verified_at,
         verification_notes: profile.verification_notes,
-        trust_score: 0,
         post_count: 0,
         created_at: profile.created_at,
         last_sign_in_at: authUser?.last_sign_in_at || null,
@@ -108,12 +116,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       users,
       totalCount: totalCount || 0,
-      hasMore: (from + users.length) < (totalCount || 0),
+      hasMore: from + users.length < (totalCount || 0),
     });
-
   } catch (error) {
     console.error('Error fetching users:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -122,7 +132,10 @@ export async function PATCH(request: NextRequest) {
     const { userId, verified, notes } = await request.json();
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
     }
 
     const adminClient = createSupabaseServerAdminClient();
@@ -137,13 +150,18 @@ export async function PATCH(request: NextRequest) {
       .eq('id', userId);
 
     if (error) {
-      return NextResponse.json({ error: `Failed to update verification: ${error.message}` }, { status: 500 });
+      return NextResponse.json(
+        { error: `Failed to update verification: ${error.message}` },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });
-
   } catch (error) {
     console.error('Error updating user verification:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

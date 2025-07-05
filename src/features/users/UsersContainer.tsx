@@ -1,27 +1,34 @@
 'use client';
 
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { getUsers, updateUserVerification, AdminUser } from './_api/get-users';
+import { getUsers, updateUserVerification } from './_api/get-users';
 import { UsersPresenter } from './UsersPresenter';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function UsersContainer() {
   const queryClient = useQueryClient();
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [verificationFilter, setVerificationFilter] = useState<'all' | 'verified' | 'unverified'>('all');
-  const [sortBy, setSortBy] = useState<'created_at' | 'last_sign_in_at' | 'trust_score' | 'full_name'>('created_at');
+  const [verificationFilter, setVerificationFilter] = useState<
+    'all' | 'verified' | 'unverified'
+  >('all');
+  const [sortBy, setSortBy] = useState<
+    'created_at' | 'last_sign_in_at' | 'post_count' | 'full_name'
+  >('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['admin-users', { 
-      page: currentPage, 
-      search: searchTerm, 
-      verificationStatus: verificationFilter,
-      sortBy,
-      sortOrder 
-    }],
+    queryKey: [
+      'admin-users',
+      {
+        page: currentPage,
+        search: searchTerm,
+        verificationStatus: verificationFilter,
+        sortBy,
+        sortOrder,
+      },
+    ],
     queryFn: () => {
       return getUsers({
         page: currentPage,
@@ -34,10 +41,14 @@ export function UsersContainer() {
   });
 
   const verificationMutation = useMutation({
-    mutationFn: ({ userId, verified, notes }: { 
-      userId: string; 
-      verified: boolean; 
-      notes?: string 
+    mutationFn: ({
+      userId,
+      verified,
+      notes,
+    }: {
+      userId: string;
+      verified: boolean;
+      notes?: string;
     }) => {
       return updateUserVerification(userId, verified, notes);
     },
@@ -46,7 +57,11 @@ export function UsersContainer() {
     },
   });
 
-  const handleVerificationToggle = (userId: string, verified: boolean, notes?: string) => {
+  const handleVerificationToggle = (
+    userId: string,
+    verified: boolean,
+    notes?: string
+  ) => {
     verificationMutation.mutate({ userId, verified, notes });
   };
 
@@ -60,7 +75,10 @@ export function UsersContainer() {
     setCurrentPage(1);
   };
 
-  const handleSortChange = (newSortBy: typeof sortBy, newSortOrder: typeof sortOrder) => {
+  const handleSortChange = (
+    newSortBy: typeof sortBy,
+    newSortOrder: typeof sortOrder
+  ) => {
     setSortBy(newSortBy);
     setSortOrder(newSortOrder);
     setCurrentPage(1);
@@ -83,7 +101,7 @@ export function UsersContainer() {
   }
 
   return (
-    <UsersPresenter 
+    <UsersPresenter
       users={data.users}
       totalCount={data.totalCount}
       hasMore={data.hasMore}
@@ -147,15 +165,27 @@ function UsersError({ error }: { error: string }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Users</h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage platform users</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Users
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Manage platform users
+        </p>
       </div>
 
       <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-6">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            <svg
+              className="h-5 w-5 text-red-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
           <div className="ml-3">

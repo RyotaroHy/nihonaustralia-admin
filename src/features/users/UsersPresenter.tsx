@@ -1,5 +1,11 @@
+import {
+  HiCheck,
+  HiSearch,
+  HiSortAscending,
+  HiSortDescending,
+  HiX,
+} from 'react-icons/hi';
 import { AdminUser } from './_api/get-users';
-import { HiSearch, HiCheck, HiX, HiSortAscending, HiSortDescending } from 'react-icons/hi';
 
 type UsersPresenterProps = {
   users: AdminUser[];
@@ -8,14 +14,21 @@ type UsersPresenterProps = {
   currentPage: number;
   searchTerm: string;
   verificationFilter: 'all' | 'verified' | 'unverified';
-  sortBy: 'created_at' | 'last_sign_in_at' | 'trust_score' | 'full_name';
+  sortBy: 'created_at' | 'last_sign_in_at' | 'post_count' | 'full_name';
   sortOrder: 'asc' | 'desc';
   isUpdating: boolean;
   onSearch: (search: string) => void;
   onFilterChange: (filter: 'all' | 'verified' | 'unverified') => void;
-  onSortChange: (sortBy: 'created_at' | 'last_sign_in_at' | 'trust_score' | 'full_name', sortOrder: 'asc' | 'desc') => void;
+  onSortChange: (
+    sortBy: 'created_at' | 'last_sign_in_at' | 'post_count' | 'full_name',
+    sortOrder: 'asc' | 'desc'
+  ) => void;
   onPageChange: (page: number) => void;
-  onVerificationToggle: (userId: string, verified: boolean, notes?: string) => void;
+  onVerificationToggle: (
+    userId: string,
+    verified: boolean,
+    notes?: string
+  ) => void;
 };
 
 export function UsersPresenter({
@@ -41,7 +54,11 @@ export function UsersPresenter({
 
   const getSortIcon = (field: typeof sortBy) => {
     if (sortBy !== field) return null;
-    return sortOrder === 'desc' ? <HiSortDescending className="h-4 w-4" /> : <HiSortAscending className="h-4 w-4" />;
+    return sortOrder === 'desc' ? (
+      <HiSortDescending className="h-4 w-4" />
+    ) : (
+      <HiSortAscending className="h-4 w-4" />
+    );
   };
 
   const formatDate = (dateString: string | null) => {
@@ -49,16 +66,12 @@ export function UsersPresenter({
     return new Date(dateString).toLocaleDateString();
   };
 
-  const getTrustScoreColor = (score: number) => {
-    if (score >= 70) return 'text-green-600 dark:text-green-400';
-    if (score >= 40) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
-  };
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Users</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Users
+        </h1>
         <p className="text-gray-600 dark:text-gray-400">
           Manage platform users ({totalCount.toLocaleString()} total)
         </p>
@@ -74,7 +87,7 @@ export function UsersPresenter({
               type="text"
               placeholder="Search users..."
               value={searchTerm}
-              onChange={(e) => onSearch(e.target.value)}
+              onChange={e => onSearch(e.target.value)}
               className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
@@ -82,7 +95,9 @@ export function UsersPresenter({
           {/* Verification Filter */}
           <select
             value={verificationFilter}
-            onChange={(e) => onFilterChange(e.target.value as typeof verificationFilter)}
+            onChange={e =>
+              onFilterChange(e.target.value as typeof verificationFilter)
+            }
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           >
             <option value="all">All Users</option>
@@ -103,7 +118,7 @@ export function UsersPresenter({
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSortClick('full_name')}
                 >
@@ -118,16 +133,16 @@ export function UsersPresenter({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Verification
                 </th>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-                  onClick={() => handleSortClick('trust_score')}
+                  onClick={() => handleSortClick('post_count')}
                 >
                   <div className="flex items-center space-x-1">
-                    <span>Trust Score</span>
-                    {getSortIcon('trust_score')}
+                    <span>Posts</span>
+                    {getSortIcon('post_count')}
                   </div>
                 </th>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSortClick('created_at')}
                 >
@@ -136,7 +151,7 @@ export function UsersPresenter({
                     {getSortIcon('created_at')}
                   </div>
                 </th>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSortClick('last_sign_in_at')}
                 >
@@ -151,8 +166,11 @@ export function UsersPresenter({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+              {users.map(user => (
+                <tr
+                  key={user.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -187,11 +205,11 @@ export function UsersPresenter({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className={`font-medium ${getTrustScoreColor(user.trust_score)}`}>
-                      {user.trust_score}/90
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      {user.post_count}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {user.post_count} posts
+                      posts
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -202,7 +220,9 @@ export function UsersPresenter({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => onVerificationToggle(user.id, !user.admin_verified)}
+                      onClick={() =>
+                        onVerificationToggle(user.id, !user.admin_verified)
+                      }
                       disabled={isUpdating}
                       className={`inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md ${
                         user.admin_verified

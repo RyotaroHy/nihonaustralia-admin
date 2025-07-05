@@ -1,6 +1,3 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/types/supabase';
-
 export type AdminUser = {
   id: string;
   email: string;
@@ -14,7 +11,6 @@ export type AdminUser = {
   verified_by: string | null;
   verified_at: string | null;
   verification_notes: string | null;
-  trust_score: number;
   post_count: number;
   created_at: string | null;
   last_sign_in_at: string | null;
@@ -26,7 +22,7 @@ type GetUsersParams = {
   limit?: number;
   search?: string;
   verificationStatus?: 'all' | 'verified' | 'unverified';
-  sortBy?: 'created_at' | 'last_sign_in_at' | 'trust_score' | 'full_name';
+  sortBy?: 'created_at' | 'last_sign_in_at' | 'post_count' | 'full_name';
   sortOrder?: 'asc' | 'desc';
 };
 
@@ -58,7 +54,7 @@ export const getUsers = async (
   });
 
   const response = await fetch(`/api/users?${searchParams}`);
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to fetch users');

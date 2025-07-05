@@ -34,15 +34,7 @@ export type Database = {
           name?: string;
           user_id?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'contacts_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'trust_scores_view';
-            referencedColumns: ['user_id'];
-          },
-        ];
+        Relationships: [];
       };
       employment_types: {
         Row: {
@@ -106,7 +98,7 @@ export type Database = {
             foreignKeyName: 'job_post_categories_job_post_id_fkey';
             columns: ['job_post_id'];
             isOneToOne: false;
-            referencedRelation: 'job_posts_with_trust';
+            referencedRelation: 'job_posts_view';
             referencedColumns: ['post_id'];
           },
         ];
@@ -143,7 +135,7 @@ export type Database = {
             foreignKeyName: 'job_post_employment_types_job_post_id_fkey';
             columns: ['job_post_id'];
             isOneToOne: false;
-            referencedRelation: 'job_posts_with_trust';
+            referencedRelation: 'job_posts_view';
             referencedColumns: ['post_id'];
           },
         ];
@@ -180,7 +172,7 @@ export type Database = {
             foreignKeyName: 'job_post_required_english_levels_job_post_id_fkey';
             columns: ['job_post_id'];
             isOneToOne: false;
-            referencedRelation: 'job_posts_with_trust';
+            referencedRelation: 'job_posts_view';
             referencedColumns: ['post_id'];
           },
         ];
@@ -210,7 +202,7 @@ export type Database = {
             foreignKeyName: 'job_post_visa_types_job_post_id_fkey';
             columns: ['job_post_id'];
             isOneToOne: false;
-            referencedRelation: 'job_posts_with_trust';
+            referencedRelation: 'job_posts_view';
             referencedColumns: ['post_id'];
           },
           {
@@ -247,7 +239,7 @@ export type Database = {
             foreignKeyName: 'job_post_working_periods_job_post_id_fkey';
             columns: ['job_post_id'];
             isOneToOne: false;
-            referencedRelation: 'job_posts_with_trust';
+            referencedRelation: 'job_posts_view';
             referencedColumns: ['post_id'];
           },
           {
@@ -329,7 +321,7 @@ export type Database = {
             foreignKeyName: 'job_posts_post_id_fkey';
             columns: ['post_id'];
             isOneToOne: true;
-            referencedRelation: 'posts_with_trust';
+            referencedRelation: 'posts';
             referencedColumns: ['id'];
           },
         ];
@@ -397,8 +389,8 @@ export type Database = {
             foreignKeyName: 'mypage_profiles_id_fkey';
             columns: ['id'];
             isOneToOne: true;
-            referencedRelation: 'trust_scores_view';
-            referencedColumns: ['user_id'];
+            referencedRelation: 'mypage_profiles';
+            referencedColumns: ['id'];
           },
           {
             foreignKeyName: 'mypage_profiles_origin_country_fkey';
@@ -489,15 +481,15 @@ export type Database = {
             foreignKeyName: 'post_bookmarks_post_id_fkey';
             columns: ['post_id'];
             isOneToOne: false;
-            referencedRelation: 'posts_with_trust';
+            referencedRelation: 'posts';
             referencedColumns: ['id'];
           },
           {
             foreignKeyName: 'post_bookmarks_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: 'trust_scores_view';
-            referencedColumns: ['user_id'];
+            referencedRelation: 'mypage_profiles';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -535,7 +527,7 @@ export type Database = {
             foreignKeyName: 'post_images_post_id_fkey';
             columns: ['post_id'];
             isOneToOne: false;
-            referencedRelation: 'posts_with_trust';
+            referencedRelation: 'posts';
             referencedColumns: ['id'];
           },
         ];
@@ -571,15 +563,15 @@ export type Database = {
             foreignKeyName: 'post_likes_post_id_fkey';
             columns: ['post_id'];
             isOneToOne: false;
-            referencedRelation: 'posts_with_trust';
+            referencedRelation: 'posts';
             referencedColumns: ['id'];
           },
           {
             foreignKeyName: 'post_likes_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: 'trust_scores_view';
-            referencedColumns: ['user_id'];
+            referencedRelation: 'mypage_profiles';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -629,15 +621,15 @@ export type Database = {
             foreignKeyName: 'post_views_post_id_fkey';
             columns: ['post_id'];
             isOneToOne: false;
-            referencedRelation: 'posts_with_trust';
+            referencedRelation: 'posts';
             referencedColumns: ['id'];
           },
           {
             foreignKeyName: 'post_views_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: 'trust_scores_view';
-            referencedColumns: ['user_id'];
+            referencedRelation: 'mypage_profiles';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -754,7 +746,7 @@ export type Database = {
       };
     };
     Views: {
-      job_posts_with_trust: {
+      job_posts_view: {
         Row: {
           address_detail: string | null;
           can_get_second: boolean | null;
@@ -784,7 +776,6 @@ export type Database = {
           status: string | null;
           suburb: string | null;
           title: string | null;
-          trust_score: number | null;
           visa_type_ids: number[] | null;
           working_period_ids: number[] | null;
         };
@@ -800,7 +791,7 @@ export type Database = {
             foreignKeyName: 'job_posts_post_id_fkey';
             columns: ['post_id'];
             isOneToOne: true;
-            referencedRelation: 'posts_with_trust';
+            referencedRelation: 'posts';
             referencedColumns: ['id'];
           },
           {
@@ -818,45 +809,6 @@ export type Database = {
             referencedColumns: ['code'];
           },
         ];
-      };
-      posts_with_trust: {
-        Row: {
-          created_at: string | null;
-          created_by: string | null;
-          id: string | null;
-          status: string | null;
-          trust_score: number | null;
-          type: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'posts_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'mypage_profiles';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'posts_status_fkey';
-            columns: ['status'];
-            isOneToOne: false;
-            referencedRelation: 'post_statuses';
-            referencedColumns: ['code'];
-          },
-        ];
-      };
-      trust_scores_view: {
-        Row: {
-          bookmark_score: number | null;
-          full_name: string | null;
-          like_score: number | null;
-          longevity_score: number | null;
-          post_score: number | null;
-          profile_score: number | null;
-          trust_score: number | null;
-          user_id: string | null;
-        };
-        Relationships: [];
       };
     };
     Functions: {
